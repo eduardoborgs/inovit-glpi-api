@@ -1,4 +1,3 @@
-// Substitua pela URL gerada no painel do Cloudflare Workers
 export const API_CONFIG = {
-    BFF_URL: "https://inovit-api.seu-usuario.workers.dev" 
+    BFF_URL: "https://inovit-glpi-api.eduardo-borges-35d.workers.dev/" 
 };

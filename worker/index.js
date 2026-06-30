@@ -1,5 +1,5 @@
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "https://eduardoborgs.github.io/", // Em produção, altere para a URL do seu GitHub Pages
+  "Access-Control-Allow-Origin": "https://eduardoborgs.github.io/inovit-glpi-api/", 
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, App-Token, Session-Token",
 };
