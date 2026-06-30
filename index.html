@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INOVIT | Insight HUB</title>
+    
+    <link rel="stylesheet" href="css/style.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+</head>
+<body>
+    <div id="loading-overlay" class="loading-overlay" style="display:none;">
+        <div class="spinner"></div><div class="loading-text" id="loading-text">PROCESSANDO...</div>
+    </div>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>🔐 Insight HUB</h2>
+            <div id="login-error" class="login-error"></div>
+            <label>Usuário</label><input type="text" id="login-user" autofocus>
+            <label>Senha</label><input type="password" id="login-pass">
+            <button class="btn-login" onclick="window.doLogin()">Entrar</button>
+        </div>
+    </div>
+    
+    <div id="topbar">
+        <div style="display:flex; align-items:center; gap:16px; margin-left:auto;">
+            <div id="topbar-user" onclick="window.toggleUserMenu(event)">
+                <span class="user-icon">👤</span>
+                <span id="topbar-username">...</span>
+                <span class="arrow-down">▼</span>
+                <div id="user-menu-dropdown" class="user-dropdown">
+                    <div class="dropdown-item danger" onclick="window.openLogoutModal()">🚪 Sair</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard" style="display:none;">
+        <div id="sidebar">
+            <div class="nav-group">
+                <button class="nav-item active" onclick="window.switchSection('global', this)">📊 Dashboard Global</button>
+            </div>
+        </div>
+        
+        <div id="main-content">
+            <div id="panel-global" class="section-panel active">
+                <div class="welcome-header">
+                    <div><h1>Dashboard Global</h1></div>
+                </div>
+                
+                <div class="kpi-grid-10" id="global-kpi-container">
+                    <div class="kpi-card accent-orange"><div class="kpi-lbl">SLA Global</div><div class="kpi-val" id="kpi-sla-global">0.0%</div></div>
+                    <div class="kpi-card accent-blue"><div class="kpi-lbl">Clientes</div><div class="kpi-val" id="kpi-clientes">0</div></div>
+                    <div class="kpi-card accent-blue"><div class="kpi-lbl">Chamados Únicos</div><div class="kpi-val" id="kpi-tickets">0</div></div>
+                    <div class="kpi-card accent-blue"><div class="kpi-lbl">Total Ações</div><div class="kpi-val" id="kpi-acoes">0</div></div>
+                    <div class="kpi-card accent-success"><div class="kpi-lbl">Dentro SLA</div><div class="kpi-val" id="kpi-dentro-sla">0</div></div>
+                    <div class="kpi-card accent-danger"><div class="kpi-lbl">Fora SLA</div><div class="kpi-val" id="kpi-fora-sla">0</div></div>
+                    <div class="kpi-card accent-warn"><div class="kpi-lbl">Backlog</div><div class="kpi-val" id="kpi-backlog">0</div></div>
+                    <div class="kpi-card accent-blue"><div class="kpi-lbl">Técnicos</div><div class="kpi-val" id="kpi-tecnicos-count">0</div></div>
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-title">📊 SLA Global</div>
+                        <div class="chart-wrapper"><canvas id="chart-sla"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="logout-confirm-modal" class="modal-fullscreen" style="display:none;">
+        <div class="modal-container">
+            <h3>Sair do sistema</h3>
+            <p>Deseja encerrar a sessão?</p>
+            <button class="btn-logout-confirm" onclick="window.confirmLogout()">Sim, sair</button>
+            <button class="btn-logout-cancel" onclick="window.closeLogoutModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script type="module" src="src/app.js"></script>
+</body>
+</html>
