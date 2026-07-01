@@ -18,38 +18,52 @@
 </head>
 <body>
 
-<div id="loading-overlay" class="loading-overlay" style="display:none;">
-    <div class="spinner"></div><div class="loading-text" id="loading-text">PROCESSANDO DADOS...</div>
-</div>
-
 <div id="login-overlay">
     <div class="login-box">
         <div class="logo"><img src="https://raw.githubusercontent.com/oricardoguerreiro/base-inovit/75e05c3bb826c5efa8b4b70514f3e3f94e13200b/logo_inovit.png" alt="Inovit"></div>
         <h2>🔐 Insight HUB</h2>
         <p class="sub">Acesso restrito integrado ao GLPI</p>
-        <div id="login-error" class="login-error"></div>
+        <div id="login-error" class="login-error">Usuário ou senha inválidos</div>
         <label for="login-user">Usuário GLPI</label>
         <input type="text" id="login-user" placeholder="Digite seu usuário" autofocus>
         <label for="login-pass">Senha</label>
         <input type="password" id="login-pass" placeholder="Sua senha">
         <button class="btn-login" onclick="window.doLogin()">Entrar</button>
+        <div class="links"><a href="#" onclick="window.openResetPopup()">Esqueci minha senha</a></div>
     </div>
 </div>
 
-<div id="logout-confirm-modal" class="modal-fullscreen" style="display:none; z-index: 10003;">
-    <div class="logout-confirm-box modal-container" style="max-width: 400px; text-align: center; margin-top: 20vh;">
+<div id="reset-popup">
+    <div class="reset-popup-box">
+        <h3>🔒 Redefinição de senha</h3>
+        <p>Contate o administrador do sistema para redefinir sua senha no GLPI.</p>
+        <button class="btn-close-reset" onclick="window.closeResetPopup()">Entendi</button>
+    </div>
+</div>
+
+<div id="logout-confirm-modal">
+    <div class="logout-confirm-box">
         <h3>🚪 Sair do sistema</h3>
         <p>Tem certeza que deseja encerrar sua sessão?</p>
-        <div style="margin-top: 20px;">
-            <button class="btn-logout-confirm" onclick="window.confirmLogout()">Sim, sair</button>
-            <button class="btn-logout-cancel" onclick="window.closeLogoutModal()">Cancelar</button>
-        </div>
+        <button class="btn-logout-confirm" onclick="window.confirmLogout()">Sim, sair</button>
+        <button class="btn-logout-cancel" onclick="window.closeLogoutModal()">Cancelar</button>
+    </div>
+</div>
+
+<div id="change-password-modal">
+    <div class="change-password-box">
+        <h3>🔑 Alterar Senha</h3>
+        <div id="cp-error" class="cp-error"></div>
+        <div class="form-group"><label>Senha Atual</label><input type="password" id="cp-current-pass" placeholder="Digite sua senha atual"></div>
+        <div class="form-group"><label>Nova Senha</label><input type="password" id="cp-new-pass" placeholder="Mínimo 8 caracteres"></div>
+        <div class="form-group"><label>Confirmar Nova Senha</label><input type="password" id="cp-confirm-pass" placeholder="Digite novamente"></div>
+        <div><button class="btn-save-pass" onclick="window.saveNewPassword()">Salvar</button><button class="btn-cancel-pass" onclick="window.closeChangePasswordModal()">Cancelar</button></div>
     </div>
 </div>
 
 <div id="brand-logo"><img src="https://raw.githubusercontent.com/oricardoguerreiro/base-inovit/75e05c3bb826c5efa8b4b70514f3e3f94e13200b/logo_inovit.png" alt="Inovit"></div>
-<div class="watermark-bl">v28.0 (Serverless API)</div>
-<div class="watermark-br">Arquitetura de Produção</div>
+<div class="watermark-bl">v28.0</div>
+<div class="watermark-br">Arquitetura de Produção Integrada ao GLPI</div>
 
 <div id="topbar">
     <div style="display:flex; align-items:center; gap:16px; margin-left:auto;">
@@ -68,6 +82,7 @@
             <span class="exclamation">!</span>
             <span class="arrow-down">▼</span>
             <div id="user-menu-dropdown" class="user-dropdown">
+                <div class="dropdown-item" onclick="window.openChangePasswordModal()">🔑 Alterar Senha</div>
                 <div class="dropdown-item danger" onclick="window.openLogoutModal()">🚪 Sair</div>
             </div>
         </div>
@@ -77,17 +92,19 @@
 <div id="dashboard" style="display:none;">
     <div id="sidebar">
         <div class="nav-group">
-            <button class="nav-item active" onclick="window.switchSection('global', this)">📊 Dashboard Global</button>
-            <button class="nav-item" onclick="window.switchSection('cliente', this)">🏢 Por Cliente</button>
-            <button class="nav-item" onclick="window.switchSection('chamado', this)">📌 Por Chamado</button>
-            <button class="nav-item" onclick="window.switchSection('tecnicos', this)">👨‍💻 Técnicos</button>
-            <button class="nav-item" onclick="window.switchSection('produtividade', this)">📊 Produtividade</button>
-            <button class="nav-item" onclick="window.switchSection('backlog', this)">⏳ Backlog</button>
+            <button class="nav-item active" onclick="window.switchSection('global', this)" data-module="global">📊 Dashboard Global</button>
+            <button class="nav-item" onclick="window.switchSection('cliente', this)" data-module="cliente">🏢 Por Cliente</button>
+            <button class="nav-item" onclick="window.switchSection('chamado', this)" data-module="chamado">📌 Por Chamado</button>
+            <button class="nav-item" onclick="window.switchSection('tecnicos', this)" data-module="tecnicos">👨‍💻 Técnicos</button>
+            <button class="nav-item" onclick="window.switchSection('produtividade', this)" data-module="produtividade">📊 Produtividade</button>
+            <button class="nav-item" onclick="window.switchSection('backlog', this)" data-module="backlog">⏳ Backlog</button>
+            <button class="nav-item" onclick="window.switchSection('usuarios', this)" data-module="usuarios">👥 Gestão de Usuários</button>
         </div>
         <div class="sidebar-footer"></div>
     </div>
 
     <div id="main-content">
+
         <div id="panel-global" class="section-panel active">
             <div class="welcome-header"><div><h1>Dashboard Global de Governança</h1><p>Visão consolidada de todos os chamados e indicadores.</p></div></div>
             <div class="panel-header" style="border-bottom:none; padding-bottom:0; margin-top:-8px;">
@@ -134,7 +151,7 @@
         </div>
 
         <div id="panel-chamado" class="section-panel">
-            <div class="panel-header"><h2 class="panel-title">Reincidência Volumétrica e Categoria</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('panel-chamado','Categorias')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('panel-chamado','Categorias')">PDF</button><button class="btn-secondary" onclick="window.exportCSV()">📥 CSV</button></div></div>
+            <div class="panel-header"><h2 class="panel-title">Reincidência Volumétrica e Categoria de Chamados</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('panel-chamado','Categorias')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('panel-chamado','Categorias')">PDF</button><button class="btn-secondary" onclick="window.exportCSV()">📥 CSV</button></div></div>
             <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:16px 20px; border:1px solid var(--glass-border); border-radius:var(--radius); display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:20px;" data-html2canvas-ignore="true">
                 <div><label style="display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.3px;">Filtrar por Cliente:</label><select id="select-chamado-client" class="select-custom" onchange="window.applyFilters()"></select></div>
                 <div style="flex:1; display:flex; align-items:flex-end; gap:10px;"><div style="flex:1;"><label style="display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.3px;">Pesquisa Global:</label><input type="text" id="chamado-global-search-input" placeholder="Digite termos, categorias, reincidências..." class="select-custom" style="width:100%;" onkeydown="if(event.key==='Enter') window.filterPorChamadoTableAndChartsManual()"></div><button class="btn-primary" onclick="window.filterPorChamadoTableAndChartsManual()">Pesquisar</button><button class="btn-secondary" onclick="window.clearPorChamadoSearchManual()">Limpar</button></div>
@@ -195,6 +212,28 @@
                 <div class="modern-table-container"><table class="modern-table" id="table-backlog-rows"><thead><tr><th>ID</th><th>Entidade</th><th>Título</th><th>Abertura</th><th>Solução</th><th>Técnico</th><th>Equipe</th><th>Status</th></tr></thead><tbody></tbody></table></div>
             </div>
         </div>
+
+        <div id="panel-usuarios" class="section-panel">
+            <div class="panel-header"><h2 class="panel-title">👥 Gestão de Usuários e Permissões</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('panel-usuarios','Usuarios')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('panel-usuarios','Usuarios')">PDF</button></div></div>
+            <p style="color:var(--text-muted); margin-bottom:16px;">Painel de visualização.</p>
+            <div class="backup-actions" data-html2canvas-ignore="true">
+                <button class="btn-backup" onclick="window.exportUsersBackup()">📤 Exportar Usuários</button>
+                <button class="btn-backup" onclick="document.getElementById('import-user-file').click()">📥 Importar Usuários</button>
+                <input type="file" id="import-user-file" accept=".json" style="display:none" onchange="window.importUsersBackup(event)">
+            </div>
+            <div class="user-management-grid">
+                <div class="user-list-card"><h3>📋 Usuários Cadastrados</h3><div id="user-list-container"></div></div>
+                <div class="add-user-form">
+                    <h3>➕ Adicionar Novo Usuário</h3>
+                    <div class="form-group"><label>Usuário (login)</label><input type="text" id="new-username" placeholder="Digite o nome de usuário"></div>
+                    <div class="form-group"><label>Nome de Exibição (opcional)</label><input type="text" id="new-displayname" placeholder="Nome que aparecerá na saudação"></div>
+                    <div class="form-group"><label>Senha (mín. 8 caracteres)</label><input type="password" id="new-userpass" placeholder="Digite a senha"></div>
+                    <div class="form-group"><label>Permissões por Módulo</label><div class="perm-group" id="perm-checkboxes"><label><input type="checkbox" value="global" checked> Dashboard Global</label><label><input type="checkbox" value="cliente" checked> Por Cliente</label><label><input type="checkbox" value="chamado" checked> Por Chamado</label><label><input type="checkbox" value="tecnicos" checked> Técnicos</label><label><input type="checkbox" value="produtividade" checked> Produtividade</label><label><input type="checkbox" value="backlog" checked> Backlog</label><label><input type="checkbox" value="usuarios" checked> Gestão de Usuários</label></div></div>
+                    <button class="btn-add-user" onclick="window.addUser()">Adicionar Usuário</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -205,6 +244,10 @@
 <div id="modal-tech-evaluated" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="tech-evaluated-title">Chamados Avaliados pelo Técnico</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-tech-evaluated','Tecnico_Avaliados')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-tech-evaluated','Tecnico_Avaliados')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-tech-evaluated')">Fechar</button></div></div><div class="modern-table-container"><table class="modern-table" id="tech-evaluated-table"><thead><tr><th>ID</th><th>Cliente</th><th>Título</th><th>Abertura</th><th>Solução</th><th>CSAT</th></tr></thead><tbody id="tech-evaluated-tbody"></tbody></table></div><div class="pagination-container" id="tech-evaluated-pagination"><span class="info" id="tech-evaluated-info">Mostrando 0 de 0</span><div class="pagination-buttons" id="tech-evaluated-buttons"></div></div></div></div>
 <div id="modal-backlog-isolated" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="modal-backlog-isolated-title">Chamados de Backlog Mapeados</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-backlog-isolated','Backlog_Isolado')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-backlog-isolated','Backlog_Isolado')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-backlog-isolated')">Fechar</button></div></div><div class="modern-table-container"><table class="modern-table" id="table-backlog-isolated-rows"><thead><tr><th>ID</th><th>Entidade</th><th>Título</th><th>Abertura</th><th>Solução</th><th>Técnico</th><th>Equipe</th><th>Status</th></tr></thead><tbody></tbody></table></div></div></div>
 <div id="modal-client-universal" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="modal-client-name">VISÃO UNIVERSAL DO CLIENTE</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-client-universal','Relatorio_Cliente')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-client-universal','Relatorio_Cliente')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-client-universal')">Fechar</button></div></div><div id="report-client-header-tag" style="font-family:'JetBrains Mono'; font-size:14px; color:var(--blue-primary); margin-bottom:12px; font-weight:600;"></div><div class="kpi-grid-10" id="modal-client-kpis"></div><div id="modal-client-requester-section" style="margin-top:20px; margin-bottom:20px;"><h3 class="panel-title" style="font-size:20px; margin-bottom:8px;">Top 10 Requerentes Mais Ativos</h3><div class="modern-table-container"><table class="modern-table" id="modal-client-table-requesters"><thead><tr><th>Rank</th><th>Nome do Requerente</th><th>Quantidade</th></tr></thead><tbody></tbody></table></div></div><div id="modal-financial-section"><h3 class="panel-title" style="font-size:20px; margin:20px 0 8px;">Simulador de Viabilidade Econômica</h3><div class="simulator-split-grid"><div class="sim-input-card"><div class="sim-field"><label>Faturamento Mensal (R$)</label><input type="number" id="sim-input-revenue" value="12000" oninput="window.recalculateContractViability()"></div><div class="sim-field"><label>Custo Hora Técnico (R$/h)</label><input type="number" id="sim-input-hourly" value="130" oninput="window.recalculateContractViability()"></div></div><div class="sim-results-card"><div class="sim-res-row"><span class="sim-res-lbl">Ações Monitoradas:</span><span class="sim-res-val" id="sim-res-actions">0</span></div><div class="sim-res-row"><span class="sim-res-lbl">Esforço Médio (0.85h):</span><span class="sim-res-val" id="sim-res-hours">0.0h</span></div><div class="sim-res-row"><span class="sim-res-lbl">Custo Operacional Bruto:</span><span class="sim-res-val" id="sim-res-cost">R$ 0,00</span></div><div class="sim-res-row"><span class="sim-res-lbl">Margem de Rentabilidade:</span><span class="sim-res-val" id="sim-res-margin">0.0%</span></div></div></div><div id="sim-verdict-block"></div></div><div id="modal-client-dynamic-content-area"><h3 class="panel-title" id="modal-table-title" style="font-size:20px; margin:20px 0 8px;">Top 10 Categorias mais recorrentes</h3><div class="modern-table-container" id="modal-client-table-wrapper"><table class="modern-table" id="modal-client-table-tickets"><thead><tr><th>Quantidade</th><th>Categoria</th><th>% do Todo</th></tr></thead><tbody></tbody></table></div><div id="modal-client-ia-strategic-box" class="ai-insights-box" style="display:none;"></div></div><div id="modal-client-weekday-chart-container" style="margin-top:24px;"><h3 class="panel-title" style="font-size:20px; margin-bottom:8px;">Distribuição por Dia da Semana (período filtrado)</h3><div class="bar-chart-container" id="modal-client-weekday-bar-chart"><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-0" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Dom</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-1" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Seg</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-2" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Ter</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-3" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Qua</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-4" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Qui</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-5" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Sexta</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-6" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Sáb</div></div></div></div><div id="modal-client-teams-section" style="margin-top:20px; margin-bottom:20px;"><h3 class="panel-title" style="font-size:20px; margin-bottom:8px;">Técnicos Alocados</h3><div id="modal-client-teams-container" style="display:flex; flex-direction:column; gap:8px;"></div></div><div id="modal-client-evaluated-section" style="margin-top:20px; margin-bottom:20px;"><h3 class="panel-title" style="font-size:20px; margin-bottom:8px;">Chamados Avaliados (CSAT)</h3><div class="modern-table-container"><table class="modern-table" id="modal-client-evaluated-table"><thead><tr><th>ID</th><th>Título</th><th>Abertura</th><th>Solução</th><th>Nota CSAT</th><th>Técnico</th></tr></thead><tbody></tbody></table></div></div></div></div>
+
+<div id="perm-edit-modal" class="modal-fullscreen" style="display:none; align-items:center; justify-content:center;"><div class="modal-container" style="max-width:500px;"><div class="perm-edit-box"><h3>Editar Permissões</h3><div id="perm-edit-user" style="font-weight:600; margin-bottom:12px;"></div><div class="perm-checkboxes" id="perm-edit-checkboxes"></div><div><button class="btn-save-perms" onclick="window.savePermEdit()">Salvar</button><button class="btn-cancel-perms" onclick="window.closePermEdit()">Cancelar</button></div></div></div></div>
+
+<div id="loading-overlay" class="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">PROCESSANDO DADOS...</div></div>
 
 <script type="module" src="src/app.js"></script>
 </body>

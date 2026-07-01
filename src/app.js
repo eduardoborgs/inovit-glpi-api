@@ -49,7 +49,16 @@ window.doLogin = async () => {
     }
 };
 
-window.confirmLogout = () => logout();
+window.confirmLogout = () => {
+    localStorage.removeItem('glpi_session_token');
+    localStorage.removeItem('inovit_user');
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    document.getElementById('logout-confirm-modal').classList.remove('active');
+    
+    window.location.href = window.location.pathname + '?nocache=' + new Date().getTime();
+};
 window.openLogoutModal = () => document.getElementById('logout-confirm-modal').classList.add('active');
 window.closeLogoutModal = () => document.getElementById('logout-confirm-modal').classList.remove('active');
 window.toggleUserMenu = (e) => { e.stopPropagation(); document.getElementById('user-menu-dropdown').classList.toggle('active'); };
