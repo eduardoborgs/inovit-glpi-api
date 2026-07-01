@@ -162,8 +162,7 @@ export function renderProdutividadeDashboard(currentFiltered) {
             let current = new Date(Math.min(...dates.map(d=>d.getTime())));
             const maxDate = new Date(Math.max(...dates.map(d=>d.getTime())));
             while (current <= maxDate) {
-                const dia = current.getDay();
-                if (dia !== 0 && dia !== 6) diasUteis++;
+                diasUteis++;
                 current.setDate(current.getDate() + 1);
             }
         }
