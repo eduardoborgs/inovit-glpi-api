@@ -4,85 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>INOVIT | Insight HUB</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/oricardoguerreiro/base-inovit/75e05c3bb826c5efa8b4b70514f3e3f94e13200b/logo_inovit.png">
     
     <link rel="stylesheet" href="css/style.css">
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="loading-overlay" class="loading-overlay" style="display:none;">
-        <div class="spinner"></div><div class="loading-text" id="loading-text">PROCESSANDO...</div>
-    </div>
 
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2>🔐 Insight HUB</h2>
-            <div id="login-error" class="login-error"></div>
-            <label>Usuário</label><input type="text" id="login-user" autofocus>
-            <label>Senha</label><input type="password" id="login-pass">
-            <button class="btn-login" onclick="window.doLogin()">Entrar</button>
-        </div>
-    </div>
-    
-    <div id="topbar">
-        <div style="display:flex; align-items:center; gap:16px; margin-left:auto;">
-            <div id="topbar-user" onclick="window.toggleUserMenu(event)">
-                <span class="user-icon">👤</span>
-                <span id="topbar-username">...</span>
-                <span class="arrow-down">▼</span>
-                <div id="user-menu-dropdown" class="user-dropdown">
-                    <div class="dropdown-item danger" onclick="window.openLogoutModal()">🚪 Sair</div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div id="loading-overlay" class="loading-overlay" style="display:none;">
+    <div class="spinner"></div><div class="loading-text" id="loading-text">PROCESSANDO DADOS...</div>
+</div>
 
-    <div id="dashboard" style="display:none;">
-        <div id="sidebar">
-            <div class="nav-group">
-                <button class="nav-item active" onclick="window.switchSection('global', this)">📊 Dashboard Global</button>
-            </div>
-        </div>
-        
-        <div id="main-content">
-            <div id="panel-global" class="section-panel active">
-                <div class="welcome-header">
-                    <div><h1>Dashboard Global</h1></div>
-                </div>
-                
-                <div class="kpi-grid-10" id="global-kpi-container">
-                    <div class="kpi-card accent-orange"><div class="kpi-lbl">SLA Global</div><div class="kpi-val" id="kpi-sla-global">0.0%</div></div>
-                    <div class="kpi-card accent-blue"><div class="kpi-lbl">Clientes</div><div class="kpi-val" id="kpi-clientes">0</div></div>
-                    <div class="kpi-card accent-blue"><div class="kpi-lbl">Chamados Únicos</div><div class="kpi-val" id="kpi-tickets">0</div></div>
-                    <div class="kpi-card accent-blue"><div class="kpi-lbl">Total Ações</div><div class="kpi-val" id="kpi-acoes">0</div></div>
-                    <div class="kpi-card accent-success"><div class="kpi-lbl">Dentro SLA</div><div class="kpi-val" id="kpi-dentro-sla">0</div></div>
-                    <div class="kpi-card accent-danger"><div class="kpi-lbl">Fora SLA</div><div class="kpi-val" id="kpi-fora-sla">0</div></div>
-                    <div class="kpi-card accent-warn"><div class="kpi-lbl">Backlog</div><div class="kpi-val" id="kpi-backlog">0</div></div>
-                    <div class="kpi-card accent-blue"><div class="kpi-lbl">Técnicos</div><div class="kpi-val" id="kpi-tecnicos-count">0</div></div>
-                </div>
-                
-                <div class="charts-grid">
-                    <div class="chart-card">
-                        <div class="chart-title">📊 SLA Global</div>
-                        <div class="chart-wrapper"><canvas id="chart-sla"></canvas></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div id="login-overlay">
+    <div class="login-box">
+        <div class="logo"><img src="https://raw.githubusercontent.com/oricardoguerreiro/base-inovit/75e05c3bb826c5efa8b4b70514f3e3f94e13200b/logo_inovit.png" alt="Inovit"></div>
+        <h2>🔐 Insight HUB</h2>
+        <p class="sub">Acesso restrito integrado ao GLPI</p>
+        <div id="login-error" class="login-error"></div>
+        <label for="login-user">Usuário GLPI</label>
+        <input type="text" id="login-user" placeholder="Digite seu usuário" autofocus>
+        <label for="login-pass">Senha</label>
+        <input type="password" id="login-pass" placeholder="Sua senha">
+        <button class="btn-login" onclick="window.doLogin()">Entrar</button>
     </div>
+</div>
 
-    <div id="logout-confirm-modal" class="modal-fullscreen" style="display:none;">
-        <div class="modal-container">
-            <h3>Sair do sistema</h3>
-            <p>Deseja encerrar a sessão?</p>
+<div id="logout-confirm-modal" class="modal-fullscreen" style="display:none; z-index: 10003;">
+    <div class="logout-confirm-box modal-container" style="max-width: 400px; text-align: center; margin-top: 20vh;">
+        <h3>🚪 Sair do sistema</h3>
+        <p>Tem certeza que deseja encerrar sua sessão?</p>
+        <div style="margin-top: 20px;">
             <button class="btn-logout-confirm" onclick="window.confirmLogout()">Sim, sair</button>
             <button class="btn-logout-cancel" onclick="window.closeLogoutModal()">Cancelar</button>
         </div>
     </div>
+</div>
 
-    <script type="module" src="src/app.js"></script>
+<div id="brand-logo"><img src="https://raw.githubusercontent.com/oricardoguerreiro/base-inovit/75e05c3bb826c5efa8b4b70514f3e3f94e13200b/logo_inovit.png" alt="Inovit"></div>
+<div class="watermark-bl">v28.0 (Serverless API)</div>
+<div class="watermark-br">Arquitetura de Produção</div>
+
+<div id="topbar">
+    <div style="display:flex; align-items:center; gap:16px; margin-left:auto;">
+        <div class="date-filter-box" id="topbar-date-filter" style="display:none;">
+            <span>PERÍODO</span>
+            <input type="date" id="filter-from">
+            <span>até</span>
+            <input type="date" id="filter-to">
+            <button class="btn-filter-action" onclick="window.applyFilters()">Filtrar</button>
+            <button class="btn-clear-action" onclick="window.clearGlobalFilters()">Limpar</button>
+        </div>
+        <div id="topbar-user" onclick="window.toggleUserMenu(event)">
+            <span class="user-icon">👤</span>
+            <span id="topbar-greeting">Bem-vindo(a), </span>
+            <span id="topbar-username">...</span>
+            <span class="exclamation">!</span>
+            <span class="arrow-down">▼</span>
+            <div id="user-menu-dropdown" class="user-dropdown">
+                <div class="dropdown-item danger" onclick="window.openLogoutModal()">🚪 Sair</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="dashboard" style="display:none;">
+    <div id="sidebar">
+        <div class="nav-group">
+            <button class="nav-item active" onclick="window.switchSection('global', this)">📊 Dashboard Global</button>
+            <button class="nav-item" onclick="window.switchSection('cliente', this)">🏢 Por Cliente</button>
+            <button class="nav-item" onclick="window.switchSection('chamado', this)">📌 Por Chamado</button>
+            <button class="nav-item" onclick="window.switchSection('tecnicos', this)">👨‍💻 Técnicos</button>
+            <button class="nav-item" onclick="window.switchSection('produtividade', this)">📊 Produtividade</button>
+            <button class="nav-item" onclick="window.switchSection('backlog', this)">⏳ Backlog</button>
+        </div>
+        <div class="sidebar-footer"></div>
+    </div>
+
+    <div id="main-content">
+        <div id="panel-global" class="section-panel active">
+            <div class="welcome-header"><div><h1>Dashboard Global de Governança</h1><p>Visão consolidada de todos os chamados e indicadores.</p></div></div>
+            <div class="panel-header" style="border-bottom:none; padding-bottom:0; margin-top:-8px;">
+                <div class="panel-actions" data-html2canvas-ignore="true">
+                    <button class="btn-secondary" onclick="window.exportPanelToJPG('panel-global','Global')">JPG</button>
+                    <button class="btn-secondary" onclick="window.openExportPdfPopup('panel-global','Global')">PDF</button>
+                    <button class="btn-secondary" onclick="window.exportCSV()">📥 CSV</button>
+                </div>
+            </div>
+            <div class="kpi-grid-10" id="global-kpi-container">
+                <div class="kpi-card accent-orange" onclick="window.openGlobalDrilldown('sla')"><div class="kpi-icon">📊</div><div class="kpi-lbl">SLA Global</div><div class="kpi-val" id="kpi-sla-global">0.0%</div><div class="kpi-desc">Conformidade estrita</div></div>
+                <div class="kpi-card accent-blue" onclick="window.openGlobalDrilldown('clientes')"><div class="kpi-icon">🏢</div><div class="kpi-lbl">Clientes Ativos</div><div class="kpi-val" id="kpi-clientes">0</div><div class="kpi-desc">Entidades mapeadas</div></div>
+                <div class="kpi-card accent-blue" onclick="window.openGlobalDrilldown('tickets')"><div class="kpi-icon">🎫</div><div class="kpi-lbl">Chamados Únicos</div><div class="kpi-val" id="kpi-tickets">0</div><div class="kpi-desc">Identificados no lote</div></div>
+                <div class="kpi-card accent-blue" onclick="window.openGlobalDrilldown('acoes')"><div class="kpi-icon">📌</div><div class="kpi-lbl">Chamados Totais</div><div class="kpi-val" id="kpi-acoes">0</div><div class="kpi-desc">Registros processados</div></div>
+                <div class="kpi-card accent-success" onclick="window.openGlobalDrilldown('dentro-sla')"><div class="kpi-icon">✅</div><div class="kpi-lbl">Dentro do SLA</div><div class="kpi-val" id="kpi-dentro-sla">0</div><div class="kpi-desc">Ações em conformidade</div></div>
+                <div class="kpi-card accent-danger" onclick="window.openGlobalDrilldown('fora-sla')"><div class="kpi-icon">❌</div><div class="kpi-lbl">Fora do SLA</div><div class="kpi-val" id="kpi-fora-sla">0</div><div class="kpi-desc">Violações de prazo</div></div>
+                <div class="kpi-card accent-warn" onclick="window.openGlobalDrilldown('backlog')"><div class="kpi-icon">⏳</div><div class="kpi-lbl">Backlog Ativo</div><div class="kpi-val" id="kpi-backlog">0</div><div class="kpi-desc" id="kpi-backlog-desc">Pendentes / Novos</div></div>
+                <div class="kpi-card accent-blue" onclick="window.openGlobalDrilldown('csat')"><div class="kpi-icon">⭐</div><div class="kpi-lbl">Chamados Avaliados</div><div class="kpi-val" id="kpi-csat">0</div><div class="kpi-desc" id="kpi-csat-desc">Média CSAT</div></div>
+                <div class="kpi-card accent-blue" onclick="window.openGlobalDrilldown('tecnicos')"><div class="kpi-icon">👨‍💻</div><div class="kpi-lbl">Técnicos</div><div class="kpi-val" id="kpi-tecnicos-count">0</div><div class="kpi-desc">Colaboradores ativos</div></div>
+                <div class="kpi-card accent-blue"><div class="kpi-icon">📂</div><div class="kpi-lbl">Categorias Ativas</div><div class="kpi-val" id="kpi-categorias-count">0</div><div class="kpi-desc">Segmentações</div></div>
+                <div class="kpi-card accent-purple" onclick="window.openGlobalDrilldown('tipo')"><div class="kpi-icon">📊</div><div class="kpi-lbl">Distribuição de Tipo</div><div class="kpi-val" id="kpi-tipo-predominante" style="font-size:18px;">Incidentes: 0%</div><div class="kpi-desc" id="kpi-tipo-detalhe">Req: 0%</div></div>
+                <div class="kpi-card accent-blue"><div class="kpi-icon">⏱️</div><div class="kpi-lbl">Média Horas/Chamado</div><div class="kpi-val" id="kpi-media-horas-chamado">0.0h</div><div class="kpi-desc">Tempo médio por chamado</div></div>
+                <div class="kpi-card accent-success" onclick="window.openGlobalDrilldown('horas')"><div class="kpi-icon">🕒</div><div class="kpi-lbl">Horas Trabalhadas</div><div class="kpi-val" id="kpi-horas-totais">0.0h</div><div class="kpi-desc">Duração consolidada</div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="chart-card" onclick="window.openGlobalDrilldown('sla')"><div class="chart-title">📊 SLA Global</div><div class="chart-wrapper"><canvas id="chart-sla"></canvas></div></div>
+                <div class="chart-card" onclick="window.openGlobalDrilldown('dentro-sla')"><div class="chart-title">✅ Dentro / ❌ Fora do SLA</div><div class="chart-wrapper"><canvas id="chart-sla-status"></canvas></div></div>
+                <div class="chart-card" onclick="window.openGlobalDrilldown('tipo')"><div class="chart-title">📊 Distribuição de Tipo</div><div class="chart-wrapper"><canvas id="chart-tipo"></canvas></div></div>
+                <div class="chart-card" onclick="window.openGlobalDrilldown('horas')"><div class="chart-title">⏱️ Média Horas/Chamado</div><div class="chart-wrapper"><canvas id="chart-media-horas"></canvas></div></div>
+            </div>
+            <div class="charts-grid" style="margin-top:-8px;">
+                <div class="chart-card" style="grid-column:1/-1;"><div class="chart-title">📈 Evolução Mensal de Chamados</div><div class="chart-wrapper" style="min-height:180px;"><canvas id="chart-mensal"></canvas></div></div>
+            </div>
+            <div style="margin-top:20px;">
+                <div class="chart-card" style="max-width:500px; margin:0 auto;"><div class="chart-title">⭐ Distribuição das Notas CSAT</div><div class="chart-wrapper" style="min-height:150px;"><canvas id="chart-csat-dist"></canvas></div></div>
+            </div>
+        </div>
+
+        <div id="panel-cliente" class="section-panel">
+            <div class="panel-header"><h2 class="panel-title">Operações por Unidade / Cliente</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('panel-cliente','Clientes')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('panel-cliente','Clientes')">PDF</button><button class="btn-secondary" onclick="window.exportCSV()">📥 CSV</button></div></div>
+            <p style="margin-bottom:16px; color:var(--text-muted);">Clique em qualquer cartão para acionar a <strong>Visão Universal do Cliente</strong>.</p>
+            <div class="search-bar-container" style="margin-bottom:16px;"><input type="text" id="client-search-input" placeholder="Pesquisar cliente por nome..." onkeyup="window.filterClientCards()"></div>
+            <div class="flex-card-grid" id="grid-clientes-cards"></div>
+        </div>
+
+        <div id="panel-chamado" class="section-panel">
+            <div class="panel-header"><h2 class="panel-title">Reincidência Volumétrica e Categoria</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('panel-chamado','Categorias')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('panel-chamado','Categorias')">PDF</button><button class="btn-secondary" onclick="window.exportCSV()">📥 CSV</button></div></div>
+            <div style="background:var(--glass-bg); backdrop-filter:blur(8px); padding:16px 20px; border:1px solid var(--glass-border); border-radius:var(--radius); display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:20px;" data-html2canvas-ignore="true">
+                <div><label style="display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.3px;">Filtrar por Cliente:</label><select id="select-chamado-client" class="select-custom" onchange="window.applyFilters()"></select></div>
+                <div style="flex:1; display:flex; align-items:flex-end; gap:10px;"><div style="flex:1;"><label style="display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.3px;">Pesquisa Global:</label><input type="text" id="chamado-global-search-input" placeholder="Digite termos, categorias, reincidências..." class="select-custom" style="width:100%;" onkeydown="if(event.key==='Enter') window.filterPorChamadoTableAndChartsManual()"></div><button class="btn-primary" onclick="window.filterPorChamadoTableAndChartsManual()">Pesquisar</button><button class="btn-secondary" onclick="window.clearPorChamadoSearchManual()">Limpar</button></div>
+            </div>
+            <h3 style="font-size:16px; font-family:'JetBrains Mono'; color:var(--text-secondary); margin-bottom:8px;">Volume de Chamados por Dia da Semana</h3>
+            <div class="bar-chart-container" id="weekday-bar-chart">
+                <div class="bar-chart-col"><div class="bar-chart-fill" id="bar-day-0" style="height:0%;"><span class="bar-value" id="bar-val-0">0</span></div><div class="bar-chart-lbl">Dom</div></div>
+                <div class="bar-chart-col"><div class="bar-chart-fill" id="bar-day-1" style="height:0%;"><span class="bar-value" id="bar-val-1">0</span></div><div class="bar-chart-lbl">Seg</div></div>
+                <div class="bar-chart-col"><div class="bar-chart-fill" id="bar-day-2" style="height:0%;"><span class="bar-value" id="bar-val-2">0</span></div><div class="bar-chart-lbl">Ter</div></div>
+                <div class="bar-chart-col"><div class="bar-chart-fill" id="bar-day-3" style="height:0%;"><span class="bar-value" id="bar-val-3">0</span></div><div class="bar-chart-lbl">Qua</div></div>
+                <div class="bar-chart-col"><div class="bar-chart-fill" id="bar-day-4" style="height:0%;"><span class="bar-value" id="bar-val-4">0</span></div><div class="bar-chart-lbl">Qui</div></div>
+                <div class="bar-chart-col"><div class="bar-chart-fill" id="bar-day-5" style="height:0%;"><span class="bar-value" id="bar-val-5">0</span></div><div class="bar-chart-lbl">Sexta</div></div>
+                <div class="bar-chart-col"><div class="bar-chart-fill" id="bar-day-6" style="height:0%;"><span class="bar-value" id="bar-val-6">0</span></div><div class="bar-chart-lbl">Sáb</div></div>
+            </div>
+            <div class="modern-table-container" style="margin-top:20px;">
+                <table class="modern-table" id="table-top-categories"><thead><tr><th>Rank</th><th>Categoria do Chamado</th><th>Volume</th><th>% do Todo</th><th>Grau de Reincidência</th></tr></thead><tbody></tbody></table>
+            </div>
+            <h3 style="font-size:16px; font-family:'JetBrains Mono'; color:var(--text-secondary); margin-top:32px; margin-bottom:8px;">Relação Integral de Todos os Chamados do Período</h3>
+            <div class="modern-table-container" id="panel-all-period-tickets-container">
+                <table class="modern-table" id="table-all-period-tickets"><thead><tr><th>ID</th><th>Cliente</th><th>Título</th><th>Abertura</th><th>Solução</th><th>Técnico</th><th>Equipe</th><th>SLA</th></tr></thead><tbody id="all-tickets-tbody"></tbody></table>
+                <div class="pagination-container" id="all-tickets-pagination"><span class="info" id="all-tickets-info">Mostrando 0 de 0</span><div class="pagination-buttons" id="all-tickets-buttons"></div></div>
+            </div>
+        </div>
+
+        <div id="panel-tecnicos" class="section-panel">
+            <div class="panel-header"><h2 class="panel-title">Desempenho e Produtividade de Técnicos</h2><div class="panel-actions" data-html2canvas-ignore="true" style="align-items:center;"><label style="font-size:12px; font-weight:600; color:var(--text-muted); letter-spacing:0.3px;">Cliente:</label><select id="select-tecnicos-client" class="select-custom" style="min-width:160px;" onchange="window.applyFilters()"></select><button class="btn-secondary" onclick="window.exportPanelToJPG('panel-tecnicos','Tecnicos')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('panel-tecnicos','Tecnicos')">PDF</button><button class="btn-secondary" onclick="window.exportCSV()">📥 CSV</button></div></div>
+            <div class="search-bar-container" style="margin-bottom:16px;"><input type="text" id="tech-search-input" placeholder="Pesquisar técnico por nome..." onkeyup="window.filterTechCards()"></div>
+            <div class="flex-card-grid" id="grid-tecnicos-cards"></div>
+        </div>
+
+        <div id="panel-produtividade" class="section-panel">
+            <div class="panel-header"><h2 class="panel-title">📊 Equipe Técnica</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('panel-produtividade','Produtividade')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('panel-produtividade','Produtividade')">PDF</button><button class="btn-secondary" onclick="window.exportCSV()">📥 CSV</button></div></div>
+            <p style="margin-bottom:16px; color:var(--text-muted);">Ocupação e disponibilidade da equipe técnica no período analisado.</p>
+            <div class="prod-period-box" id="prod-period-box">
+                <strong>📅 PERÍODO EM ANÁLISE</strong>
+                <span id="prod-period-from">—</span><span>até</span><span id="prod-period-to">—</span>
+            </div>
+            <div class="prod-kpi-row">
+                <div class="prod-kpi-item"><div class="kpi-label">👨‍💻 TÉCNICOS EM ATIVIDADE</div><div class="kpi-number" id="prod-tecnicos-ativos">0</div></div>
+                <div class="prod-kpi-item"><div class="kpi-label">📊 OCUPAÇÃO (%)</div><div class="kpi-number" id="prod-ocupacao">0%</div></div>
+            </div>
+            <div class="prod-dashboard-grid">
+                <div class="prod-card"><div class="prod-card-title">🏢 TOP CLIENTES POR HORAS DE TRABALHO <span class="badge">horas</span></div><ul class="prod-rank-list" id="prod-top-clientes-horas"></ul></div>
+                <div class="prod-card"><div class="prod-card-title">🏢 TOP CLIENTES POR QTDE DE CHAMADOS <span class="badge">chamados</span></div><ul class="prod-rank-list" id="prod-top-clientes-qtd"></ul></div>
+                <div class="prod-card"><div class="prod-card-title">👨‍💻 TOP TÉCNICOS X HORAS <span class="badge">horas</span></div><ul class="prod-rank-list" id="prod-top-tecnicos-horas"></ul></div>
+                <div class="prod-card"><div class="prod-card-title">👨‍💻 TOP TÉCNICOS X CHAMADOS <span class="badge">chamados</span></div><ul class="prod-rank-list" id="prod-top-tecnicos-qtd"></ul></div>
+            </div>
+        </div>
+
+        <div id="panel-backlog" class="section-panel">
+            <div class="panel-header"><h2 class="panel-title">⏳ Backlog (Pendentes de Execução)</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('panel-backlog','Backlog')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('panel-backlog','Backlog')">PDF</button><button class="btn-secondary" onclick="window.exportCSV()">📥 CSV</button></div></div>
+            <p style="margin-bottom:16px; color:var(--text-muted);">Chamados com status <strong>"Novo"</strong>, <strong>"Pendente"</strong>, <strong>"Em atendimento (Atribuído)"</strong> ou <strong>"Em atendimento (Planejado)"</strong>.</p>
+            <div class="search-bar-container" style="margin-bottom:16px;"><input type="text" id="backlog-search-input" placeholder="Pesquisar cliente no backlog..." onkeyup="window.filterBacklogSummaryCards()"></div>
+            <h3 style="font-size:14px; font-family:'JetBrains Mono'; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.3px;">Volume Consolidado por Cliente</h3>
+            <div class="flex-card-grid" id="grid-backlog-summary-cards" style="margin-bottom:24px;"></div>
+            <div id="backlog-drilldown-container" style="display:none; background:var(--glass-bg); backdrop-filter:blur(12px); padding:20px; border:1px solid var(--glass-border); border-radius:var(--radius);">
+                <h3 id="backlog-drilldown-title" style="font-size:18px; color:var(--blue-dark); margin-bottom:12px;">Chamados de Backlog:</h3>
+                <div class="modern-table-container"><table class="modern-table" id="table-backlog-rows"><thead><tr><th>ID</th><th>Entidade</th><th>Título</th><th>Abertura</th><th>Solução</th><th>Técnico</th><th>Equipe</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-ticket-list" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="ticket-list-title">Lista de Chamados</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-ticket-list','Lista_Chamados')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-ticket-list','Lista_Chamados')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-ticket-list')">Fechar</button></div></div><div class="modern-table-container"><table class="modern-table" id="ticket-list-table"><thead id="ticket-list-thead"></thead><tbody id="ticket-list-tbody"></tbody></table></div><div class="pagination-container" id="ticket-list-pagination"><span class="info" id="ticket-list-info">Mostrando 0 de 0</span><div class="pagination-buttons" id="ticket-list-buttons"></div></div></div></div>
+<div id="modal-ticket-detail" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="ticket-detail-title">Detalhes do Chamado</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-ticket-detail','Detalhe_Chamado')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-ticket-detail','Detalhe_Chamado')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-ticket-detail')">Fechar</button></div></div><div id="ticket-detail-content"></div></div></div>
+<div id="modal-client-detail" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="client-detail-title">Detalhes do Cliente</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-client-detail','Detalhe_Cliente')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-client-detail','Detalhe_Cliente')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-client-detail')">Fechar</button></div></div><div id="client-detail-content"></div></div></div>
+<div id="modal-technician-detail" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="technician-detail-title">Detalhes do Técnico</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-technician-detail','Detalhe_Tecnico')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-technician-detail','Detalhe_Tecnico')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-technician-detail')">Fechar</button></div></div><div id="technician-detail-content"></div></div></div>
+<div id="modal-tech-evaluated" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="tech-evaluated-title">Chamados Avaliados pelo Técnico</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-tech-evaluated','Tecnico_Avaliados')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-tech-evaluated','Tecnico_Avaliados')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-tech-evaluated')">Fechar</button></div></div><div class="modern-table-container"><table class="modern-table" id="tech-evaluated-table"><thead><tr><th>ID</th><th>Cliente</th><th>Título</th><th>Abertura</th><th>Solução</th><th>CSAT</th></tr></thead><tbody id="tech-evaluated-tbody"></tbody></table></div><div class="pagination-container" id="tech-evaluated-pagination"><span class="info" id="tech-evaluated-info">Mostrando 0 de 0</span><div class="pagination-buttons" id="tech-evaluated-buttons"></div></div></div></div>
+<div id="modal-backlog-isolated" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="modal-backlog-isolated-title">Chamados de Backlog Mapeados</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-backlog-isolated','Backlog_Isolado')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-backlog-isolated','Backlog_Isolado')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-backlog-isolated')">Fechar</button></div></div><div class="modern-table-container"><table class="modern-table" id="table-backlog-isolated-rows"><thead><tr><th>ID</th><th>Entidade</th><th>Título</th><th>Abertura</th><th>Solução</th><th>Técnico</th><th>Equipe</th><th>Status</th></tr></thead><tbody></tbody></table></div></div></div>
+<div id="modal-client-universal" class="modal-fullscreen"><div class="modal-container"><div class="modal-hdr"><h2 class="modal-title" id="modal-client-name">VISÃO UNIVERSAL DO CLIENTE</h2><div class="panel-actions" data-html2canvas-ignore="true"><button class="btn-secondary" onclick="window.exportPanelToJPG('modal-client-universal','Relatorio_Cliente')">JPG</button><button class="btn-secondary" onclick="window.openExportPdfPopup('modal-client-universal','Relatorio_Cliente')">PDF</button><button class="modal-close" onclick="window.closeModal('modal-client-universal')">Fechar</button></div></div><div id="report-client-header-tag" style="font-family:'JetBrains Mono'; font-size:14px; color:var(--blue-primary); margin-bottom:12px; font-weight:600;"></div><div class="kpi-grid-10" id="modal-client-kpis"></div><div id="modal-client-requester-section" style="margin-top:20px; margin-bottom:20px;"><h3 class="panel-title" style="font-size:20px; margin-bottom:8px;">Top 10 Requerentes Mais Ativos</h3><div class="modern-table-container"><table class="modern-table" id="modal-client-table-requesters"><thead><tr><th>Rank</th><th>Nome do Requerente</th><th>Quantidade</th></tr></thead><tbody></tbody></table></div></div><div id="modal-financial-section"><h3 class="panel-title" style="font-size:20px; margin:20px 0 8px;">Simulador de Viabilidade Econômica</h3><div class="simulator-split-grid"><div class="sim-input-card"><div class="sim-field"><label>Faturamento Mensal (R$)</label><input type="number" id="sim-input-revenue" value="12000" oninput="window.recalculateContractViability()"></div><div class="sim-field"><label>Custo Hora Técnico (R$/h)</label><input type="number" id="sim-input-hourly" value="130" oninput="window.recalculateContractViability()"></div></div><div class="sim-results-card"><div class="sim-res-row"><span class="sim-res-lbl">Ações Monitoradas:</span><span class="sim-res-val" id="sim-res-actions">0</span></div><div class="sim-res-row"><span class="sim-res-lbl">Esforço Médio (0.85h):</span><span class="sim-res-val" id="sim-res-hours">0.0h</span></div><div class="sim-res-row"><span class="sim-res-lbl">Custo Operacional Bruto:</span><span class="sim-res-val" id="sim-res-cost">R$ 0,00</span></div><div class="sim-res-row"><span class="sim-res-lbl">Margem de Rentabilidade:</span><span class="sim-res-val" id="sim-res-margin">0.0%</span></div></div></div><div id="sim-verdict-block"></div></div><div id="modal-client-dynamic-content-area"><h3 class="panel-title" id="modal-table-title" style="font-size:20px; margin:20px 0 8px;">Top 10 Categorias mais recorrentes</h3><div class="modern-table-container" id="modal-client-table-wrapper"><table class="modern-table" id="modal-client-table-tickets"><thead><tr><th>Quantidade</th><th>Categoria</th><th>% do Todo</th></tr></thead><tbody></tbody></table></div><div id="modal-client-ia-strategic-box" class="ai-insights-box" style="display:none;"></div></div><div id="modal-client-weekday-chart-container" style="margin-top:24px;"><h3 class="panel-title" style="font-size:20px; margin-bottom:8px;">Distribuição por Dia da Semana (período filtrado)</h3><div class="bar-chart-container" id="modal-client-weekday-bar-chart"><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-0" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Dom</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-1" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Seg</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-2" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Ter</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-3" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Qua</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-4" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Qui</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-5" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Sexta</div></div><div class="bar-chart-col"><div class="bar-chart-fill" id="modal-bar-day-6" style="height:0%;" data-val="0"></div><div class="bar-chart-lbl">Sáb</div></div></div></div><div id="modal-client-teams-section" style="margin-top:20px; margin-bottom:20px;"><h3 class="panel-title" style="font-size:20px; margin-bottom:8px;">Técnicos Alocados</h3><div id="modal-client-teams-container" style="display:flex; flex-direction:column; gap:8px;"></div></div><div id="modal-client-evaluated-section" style="margin-top:20px; margin-bottom:20px;"><h3 class="panel-title" style="font-size:20px; margin-bottom:8px;">Chamados Avaliados (CSAT)</h3><div class="modern-table-container"><table class="modern-table" id="modal-client-evaluated-table"><thead><tr><th>ID</th><th>Título</th><th>Abertura</th><th>Solução</th><th>Nota CSAT</th><th>Técnico</th></tr></thead><tbody></tbody></table></div></div></div></div>
+
+<script type="module" src="src/app.js"></script>
 </body>
 </html>

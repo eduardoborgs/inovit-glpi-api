@@ -1,11 +1,17 @@
 import { login, logout, getSessionToken } from './services/authService.js';
 import { fetchTicketsFromGLPI } from './services/glpiService.js';
-import { renderGlobalKPIs } from './components/kpiComponent.js';
-import { renderSLAChart } from './components/chartComponent.js';
+import { 
+    renderGlobalDashboard, renderClienteDashboard, renderPorChamadoDashboard, 
+    renderTecnicosDashboard, renderProdutividadeDashboard, renderBacklogDashboard, 
+    renderAllPeriodTickets, setAllTicketsPage,
+    openTicketList, openTicketDetail, openClientUniversalModal,
+    exportPanelToJPG, openExportPdfPopup, exportCSV
+} from './components/ui.js';
 
 const AppState = {
     globalData: [],
-    currentFiltered: []
+    currentFiltered: [],
+    allTicketsData: []
 };
 
 function showLoading(msg) {
@@ -28,37 +34,27 @@ window.addEventListener('DOMContentLoaded', async () => {
 window.doLogin = async () => {
     const user = document.getElementById('login-user').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
-    const errorEl = document.getElementById('login-error');
-
-    if (!user || !pass) {
-        errorEl.textContent = 'Preencha todos os campos.';
-        errorEl.style.display = 'block';
-        return;
-    }
+    if (!user || !pass) return;
 
     try {
-        errorEl.style.display = 'none';
         showLoading("Autenticando...");
         await login(user, pass);
-        
         document.getElementById('login-overlay').classList.add('hidden');
         document.getElementById('topbar-username').innerText = user;
-        
         await initializeDashboard();
     } catch(err) {
         hideLoading();
-        errorEl.textContent = err.message;
-        errorEl.style.display = 'block';
+        document.getElementById('login-error').textContent = err.message;
+        document.getElementById('login-error').style.display = 'block';
     }
 };
 
-window.confirmLogout = () => { logout(); };
-window.openLogoutModal = () => { document.getElementById('logout-confirm-modal').classList.add('active'); };
-window.closeLogoutModal = () => { document.getElementById('logout-confirm-modal').classList.remove('active'); };
-window.toggleUserMenu = (e) => { 
-    e.stopPropagation(); 
-    document.getElementById('user-menu-dropdown').classList.toggle('active'); 
-};
+window.confirmLogout = () => logout();
+window.openLogoutModal = () => document.getElementById('logout-confirm-modal').classList.add('active');
+window.closeLogoutModal = () => document.getElementById('logout-confirm-modal').classList.remove('active');
+window.toggleUserMenu = (e) => { e.stopPropagation(); document.getElementById('user-menu-dropdown').classList.toggle('active'); };
+window.closeModal = (id) => { document.getElementById(id).style.display='none'; document.body.style.overflow='auto'; };
+
 window.switchSection = (sectionKey, btnEl) => {
     document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
     document.querySelectorAll('.section-panel').forEach(el=>el.classList.remove('active'));
@@ -71,18 +67,15 @@ async function initializeDashboard() {
     try {
         AppState.globalData = await fetchTicketsFromGLPI();
         AppState.currentFiltered = [...AppState.globalData];
+        AppState.allTicketsData = [...AppState.globalData];
         
         hideLoading();
-        
         document.getElementById('dashboard').style.display = 'block';
-        
         const dateFilter = document.getElementById('topbar-date-filter');
-        if (dateFilter) {
-            dateFilter.style.display = 'flex';
-        }
+        if (dateFilter) dateFilter.style.display = 'flex';
         
-        refreshUI();
-
+        populateFilterDropdowns();
+        window.applyFilters();
     } catch(err) {
         hideLoading();
         alert(`Erro Crítico: ${err.message}`);
@@ -90,10 +83,64 @@ async function initializeDashboard() {
     }
 }
 
-function refreshUI() {
-    const slaPercent = renderGlobalKPIs(AppState.currentFiltered);
+function populateFilterDropdowns() {
+    const clients = [...new Set(AppState.globalData.map(d=>d.entidade))].sort();
+    const selectChamado = document.getElementById('select-chamado-client');
+    const selectTecnicos = document.getElementById('select-tecnicos-client');
     
-    renderSLAChart(slaPercent);
+    if(selectChamado) selectChamado.innerHTML = '<option value="Todos">-- Todos os Clientes --</option>';
+    if(selectTecnicos) selectTecnicos.innerHTML = '<option value="Todos">-- Todos os Clientes --</option>';
     
-    // Opcional: Adicione chamadas aqui para renderizar outras tabelas e painéis.
+    clients.forEach(c => { 
+        if(selectChamado) selectChamado.appendChild(new Option(c, c));
+        if(selectTecnicos) selectTecnicos.appendChild(new Option(c, c));
+    });
 }
+
+window.applyFilters = () => {
+    const fromVal = document.getElementById('filter-from').value;
+    const toVal = document.getElementById('filter-to').value;
+    const fromD = fromVal ? new Date(fromVal+'T00:00:00').getTime() : null;
+    const toD = toVal ? new Date(toVal+'T23:59:59').getTime() : null;
+    
+    AppState.currentFiltered = AppState.globalData.filter(d => { 
+        const t = d.dataAbertura?.dateObj?.getTime(); 
+        if (!t) return true;
+        if(fromD && t < fromD) return false; 
+        if(toD && t > toD) return false; 
+        return true; 
+    });
+    
+    const filterClient = document.getElementById('select-chamado-client')?.value;
+    if(filterClient && filterClient !== "Todos") {
+        AppState.allTicketsData = AppState.currentFiltered.filter(d => d.entidade === filterClient);
+    } else {
+        AppState.allTicketsData = [...AppState.currentFiltered];
+    }
+    
+    setAllTicketsPage(0);
+    renderGlobalDashboard(AppState.currentFiltered);
+    renderClienteDashboard(AppState.currentFiltered);
+    renderPorChamadoDashboard(AppState.currentFiltered);
+    renderTecnicosDashboard(AppState.currentFiltered);
+    renderProdutividadeDashboard(AppState.currentFiltered);
+    renderBacklogDashboard(AppState.currentFiltered);
+    renderAllPeriodTickets(AppState.allTicketsData);
+};
+
+window.clearGlobalFilters = () => {
+    document.getElementById('filter-from').value = "";
+    document.getElementById('filter-to').value = "";
+    if(document.getElementById('select-chamado-client')) document.getElementById('select-chamado-client').value = "Todos";
+    if(document.getElementById('select-tecnicos-client')) document.getElementById('select-tecnicos-client').value = "Todos";
+    window.applyFilters();
+};
+
+window.openGlobalDrilldown = (type) => {};
+window.openTicketDetail = (id) => openTicketDetail(id, AppState.globalData);
+window.openClientUniversalModal = (client) => openClientUniversalModal(client, AppState.globalData);
+window.allTicketsGoToPage = (page) => { setAllTicketsPage(page); renderAllPeriodTickets(AppState.allTicketsData); };
+
+window.exportPanelToJPG = exportPanelToJPG;
+window.openExportPdfPopup = openExportPdfPopup;
+window.exportCSV = () => exportCSV(AppState.currentFiltered);
