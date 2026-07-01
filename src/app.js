@@ -75,14 +75,18 @@ async function initializeDashboard() {
         hideLoading();
         
         document.getElementById('dashboard').style.display = 'block';
-        document.getElementById('topbar-date-filter').style.display = 'flex';
+        
+        const dateFilter = document.getElementById('topbar-date-filter');
+        if (dateFilter) {
+            dateFilter.style.display = 'flex';
+        }
         
         refreshUI();
 
     } catch(err) {
         hideLoading();
         alert(`Erro Crítico: ${err.message}`);
-        logout(); 
+        logout();
     }
 }
 
