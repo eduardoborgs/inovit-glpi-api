@@ -1,7 +1,7 @@
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "https://eduardoborgs.github.io/inovit-glpi-api/", 
+  "Access-Control-Allow-Origin": "https://eduardoborgs.github.io", 
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, App-Token, Session-Token",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, App-Token, Session-Token, Range",
 };
 
 const STATUS_MAP = {
@@ -16,7 +16,6 @@ export default {
     }
 
     const url = new URL(request.url);
-    
     const GLPI_API = env.GLPI_URL; 
     const APP_TOKEN = env.GLPI_APP_TOKEN;
 
@@ -24,9 +23,14 @@ export default {
       try {
         const { user, password } = await request.json();
         
-        const encodedCreds = btoa(`${user}:${password}`);
+        const bytes = new TextEncoder().encode(`${user}:${password}`);
+        const binString = String.fromCodePoint(...bytes);
+        const encodedCreds = btoa(binString);
         
-        const initRes = await fetch(`${GLPI_API}/initSession`, {
+        // entities_id=0 + is_recursive=true: a sessão passa a abranger a
+        // entidade raiz e TODAS as sub-entidades (clientes). Sem isso a GLPI
+        // só devolve chamados da entidade padrão do usuário logado.
+        const initRes = await fetch(`${GLPI_API}/initSession?entities_id=0&is_recursive=true`, {
           method: 'GET',
           headers: { 
             'Authorization': `Basic ${encodedCreds}`, 
@@ -35,36 +39,41 @@ export default {
         });
 
         if (!initRes.ok) {
-          return new Response(JSON.stringify({ error: "Credenciais inválidas no GLPI" }), { status: 401, headers: CORS_HEADERS });
+          const errText = await initRes.text();
+          return new Response(JSON.stringify({ error: `GLPI recusou login: ${errText}` }), { status: 401, headers: CORS_HEADERS });
         }
         
         const data = await initRes.json();
-        
         return new Response(JSON.stringify({ session_token: data.session_token, user: user }), {
           headers: { "Content-Type": "application/json", ...CORS_HEADERS }
         });
+
       } catch (e) {
-        return new Response(JSON.stringify({ error: "Erro de infraestrutura do BFF" }), { status: 500, headers: CORS_HEADERS });
+        return new Response(JSON.stringify({ error: `Erro CF: ${e.message}` }), { status: 500, headers: CORS_HEADERS });
       }
     }
 
     if (url.pathname === "/tickets" && request.method === "GET") {
       const sessionToken = request.headers.get("Authorization")?.replace("Bearer ", "");
-      
-      if (!sessionToken) {
-        return new Response("Acesso negado", { status: 401, headers: CORS_HEADERS });
-      }
+      if (!sessionToken) return new Response("Acesso negado (Token ausente)", { status: 401, headers: CORS_HEADERS });
 
       try {
-        const ticketRes = await fetch(`${GLPI_API}/Ticket?expand_dropdowns=true&range=0-500`, {
+        // is_recursive=true aqui também, para garantir que a própria busca de
+        // chamados (e não só o login) considere as sub-entidades.
+        const ticketRes = await fetch(`${GLPI_API}/Ticket?expand_dropdowns=true&is_recursive=true`, {
+          method: 'GET',
           headers: { 
             'Session-Token': sessionToken, 
-            'App-Token': APP_TOKEN 
+            'App-Token': APP_TOKEN,
+            'Range': '0-2000' 
           }
         });
 
         if (!ticketRes.ok) {
-          return new Response("Falha na API GLPI", { status: 500, headers: CORS_HEADERS });
+          const errText = await ticketRes.text();
+          return new Response(JSON.stringify({ 
+            error: `Falha ao buscar chamados (Status ${ticketRes.status}): ${errText}` 
+          }), { status: ticketRes.status, headers: CORS_HEADERS });
         }
         
         const glpiTickets = await ticketRes.json();
@@ -87,7 +96,7 @@ export default {
 
         return new Response(JSON.stringify(mappedTickets), { headers: { "Content-Type": "application/json", ...CORS_HEADERS } });
       } catch (e) {
-        return new Response(JSON.stringify({ error: "Erro ao compilar tickets" }), { status: 500, headers: CORS_HEADERS });
+        return new Response(JSON.stringify({ error: `Erro no Worker ao processar chamados: ${e.message}` }), { status: 500, headers: CORS_HEADERS });
       }
     }
 
