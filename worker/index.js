@@ -65,7 +65,7 @@ export default {
           headers: { 
             'Session-Token': sessionToken, 
             'App-Token': APP_TOKEN,
-            'Range': '0-2000' 
+            'Range': '0-1000000' 
           }
         });
 
