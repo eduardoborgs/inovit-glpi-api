@@ -1,8 +1,8 @@
 import { login, logout, getSessionToken } from './services/authService.js';
 import { fetchTicketsFromGLPI } from './services/glpiService.js';
-import { 
-    renderGlobalDashboard, renderClienteDashboard, renderPorChamadoDashboard, 
-    renderTecnicosDashboard, renderProdutividadeDashboard, renderBacklogDashboard, 
+import {
+    renderGlobalDashboard, renderClienteDashboard, renderPorChamadoDashboard,
+    renderTecnicosDashboard, renderProdutividadeDashboard, renderBacklogDashboard,
     renderAllPeriodTickets, setAllTicketsPage,
     openTicketList, openTicketDetail, openClientUniversalModal,
     exportPanelToJPG, openExportPdfPopup, exportCSV
@@ -54,9 +54,7 @@ window.confirmLogout = () => {
     localStorage.removeItem('inovit_user');
     localStorage.clear();
     sessionStorage.clear();
-    
     document.getElementById('logout-confirm-modal').classList.remove('active');
-    
     window.location.href = window.location.pathname + '?nocache=' + new Date().getTime();
 };
 window.openLogoutModal = () => document.getElementById('logout-confirm-modal').classList.add('active');
@@ -77,14 +75,14 @@ async function initializeDashboard() {
         AppState.globalData = await fetchTicketsFromGLPI();
         AppState.currentFiltered = [...AppState.globalData];
         AppState.allTicketsData = [...AppState.globalData];
-        
+
         hideLoading();
         document.getElementById('dashboard').style.display = 'block';
         const dateFilter = document.getElementById('topbar-date-filter');
         if (dateFilter) dateFilter.style.display = 'flex';
-        
+
         populateFilterDropdowns();
-        window.applyFilters();
+        window.applyFilters(); // chama a versão assíncrona
     } catch(err) {
         hideLoading();
         alert(`Erro Crítico: ${err.message}`);
@@ -96,45 +94,54 @@ function populateFilterDropdowns() {
     const clients = [...new Set(AppState.globalData.map(d=>d.entidade))].sort();
     const selectChamado = document.getElementById('select-chamado-client');
     const selectTecnicos = document.getElementById('select-tecnicos-client');
-    
+
     if(selectChamado) selectChamado.innerHTML = '<option value="Todos">-- Todos os Clientes --</option>';
     if(selectTecnicos) selectTecnicos.innerHTML = '<option value="Todos">-- Todos os Clientes --</option>';
-    
-    clients.forEach(c => { 
+
+    clients.forEach(c => {
         if(selectChamado) selectChamado.appendChild(new Option(c, c));
         if(selectTecnicos) selectTecnicos.appendChild(new Option(c, c));
     });
 }
 
-window.applyFilters = () => {
+window.applyFilters = async () => {
     const fromVal = document.getElementById('filter-from').value;
     const toVal = document.getElementById('filter-to').value;
-    const fromD = fromVal ? new Date(fromVal+'T00:00:00').getTime() : null;
-    const toD = toVal ? new Date(toVal+'T23:59:59').getTime() : null;
-    
-    AppState.currentFiltered = AppState.globalData.filter(d => { 
-        const t = d.dataAbertura?.dateObj?.getTime(); 
-        if (!t) return true;
-        if(fromD && t < fromD) return false; 
-        if(toD && t > toD) return false; 
-        return true; 
-    });
-    
-    const filterClient = document.getElementById('select-chamado-client')?.value;
-    if(filterClient && filterClient !== "Todos") {
-        AppState.allTicketsData = AppState.currentFiltered.filter(d => d.entidade === filterClient);
-    } else {
+
+    try {
+        showLoading('Carregando dados filtrados...');
+        let newData;
+        if (fromVal || toVal) {
+            newData = await fetchTicketsFromGLPI(fromVal, toVal);
+        } else {
+            newData = await fetchTicketsFromGLPI();
+        }
+
+        AppState.globalData = newData;
+
+        const filterClient = document.getElementById('select-chamado-client')?.value;
+        if (filterClient && filterClient !== "Todos") {
+            AppState.currentFiltered = AppState.globalData.filter(d => d.entidade === filterClient);
+        } else {
+            AppState.currentFiltered = [...AppState.globalData];
+        }
+
         AppState.allTicketsData = [...AppState.currentFiltered];
+        setAllTicketsPage(0);
+
+        renderGlobalDashboard(AppState.currentFiltered);
+        renderClienteDashboard(AppState.currentFiltered);
+        renderPorChamadoDashboard(AppState.currentFiltered);
+        renderTecnicosDashboard(AppState.currentFiltered);
+        renderProdutividadeDashboard(AppState.currentFiltered);
+        renderBacklogDashboard(AppState.currentFiltered);
+        renderAllPeriodTickets(AppState.allTicketsData);
+
+        hideLoading();
+    } catch (err) {
+        hideLoading();
+        alert(`Erro ao carregar dados: ${err.message}`);
     }
-    
-    setAllTicketsPage(0);
-    renderGlobalDashboard(AppState.currentFiltered);
-    renderClienteDashboard(AppState.currentFiltered);
-    renderPorChamadoDashboard(AppState.currentFiltered);
-    renderTecnicosDashboard(AppState.currentFiltered);
-    renderProdutividadeDashboard(AppState.currentFiltered);
-    renderBacklogDashboard(AppState.currentFiltered);
-    renderAllPeriodTickets(AppState.allTicketsData);
 };
 
 window.clearGlobalFilters = () => {

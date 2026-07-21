@@ -67,14 +67,14 @@
 
 <div id="topbar">
     <div style="display:flex; align-items:center; gap:16px; margin-left:auto;">
-        <div class="date-filter-box" id="topbar-date-filter" style="display:none;">
-            <span>PERÍODO</span>
-            <input type="date" id="filter-from">
-            <span>até</span>
-            <input type="date" id="filter-to">
-            <button class="btn-filter-action" onclick="window.applyFilters()">Filtrar</button>
-            <button class="btn-clear-action" onclick="window.clearGlobalFilters()">Limpar</button>
-        </div>
+    <div class="date-filter-box" id="topbar-date-filter" style="display:none;">
+        <span>PERÍODO</span>
+        <input type="date" id="filter-from" onchange="window.applyFilters()">
+        <span>até</span>
+        <input type="date" id="filter-to" onchange="window.applyFilters()">
+        <button class="btn-filter-action" onclick="window.applyFilters()">Filtrar</button>
+        <button class="btn-clear-action" onclick="window.clearGlobalFilters()">Limpar</button>
+    </div>
         <div id="topbar-user" onclick="window.toggleUserMenu(event)">
             <span class="user-icon">👤</span>
             <span id="topbar-greeting">Bem-vindo(a), </span>

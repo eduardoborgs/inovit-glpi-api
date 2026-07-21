@@ -16,7 +16,7 @@ function parseDate(v) {
         dia: String(d.getDate()).padStart(2, '0'),
         mes: String(d.getMonth() + 1).padStart(2, '0'),
         ano: d.getFullYear(),
-        dateObj: d 
+        dateObj: d
     };
 }
 
@@ -30,24 +30,25 @@ function calcularSLATodosOsDias(abertura, fechamento) {
     let minutos = 0;
     let current = new Date(d1.getTime());
     while (current < d2) {
-        let hora = current.getHours();
-        
         minutos++;
-        
         current.setMinutes(current.getMinutes() + 1);
     }
     return (minutos / 60) <= 16;
 }
 
-export async function fetchTicketsFromGLPI() {
+export async function fetchTicketsFromGLPI(startDate, endDate) {
     const token = localStorage.getItem('glpi_session_token');
     if (!token) throw new Error("Acesso negado: Token de sessão ausente.");
 
-    const response = await fetch(`${API_CONFIG.BFF_URL}/tickets`, {
+    let url = `${API_CONFIG.BFF_URL}/tickets`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('start', startDate);
+    if (endDate) params.append('end', endDate);
+    if (params.toString()) url += '?' + params.toString();
+
+    const response = await fetch(url, {
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
     });
 
     if (!response.ok) {
